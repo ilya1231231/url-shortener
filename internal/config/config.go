@@ -24,7 +24,7 @@ type HTTPServer struct {
 }
 
 // функции с префикса Must применяется при панике
-func MustLoad() {
+func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH not found")
@@ -39,4 +39,6 @@ func MustLoad() {
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		log.Fatalf("cannot read config: %s", err)
 	}
+
+	return &cfg
 }
