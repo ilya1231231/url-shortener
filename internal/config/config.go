@@ -25,7 +25,12 @@ type HTTPServer struct {
 
 // функции с префикса Must применяется при панике
 func MustLoad() *Config {
-	configPath := os.Getenv("CONFIG_PATH")
+	configPath, exists := os.LookupEnv("CONFIG_PATH")
+	if !exists {
+		//обычно читается с переменной окружения проекта (launch.json), но и так пойдет
+		configPath = "./config/local.yaml"
+		log.Println("WARNING you`re using default config path")
+	}
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH not found")
 	}

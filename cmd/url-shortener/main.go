@@ -14,15 +14,10 @@ const (
 
 func main() {
 	//данная библиотека минималистичная и может читать почти со всех файлов конфига (json, yaml, env)
-	// TODO: init config: cleanenv
-	//!!! изучть как правильно используется Setenv
-	os.Setenv("CONFIG_PATH", "./config/local.yaml")
 	cfg := config.MustLoad()
-	//библиотека для логирования
-	//изучить и понять логику детальнее. При env=prod не выводится сообщение из-за настройки.
-	log := setupLogger(cfg.Env)
-	log.Info("starting url-shortener", slog.String("env", cfg.Env))
-	log.Debug("debug messages are enabled")
+	logger := setupLogger(cfg.Env)
+	logger.Info("starting url-shortener", slog.String("env", cfg.Env))
+	logger.Debug("debug messages are enabled")
 	//вот тут я бы использовал mysql
 	// TODO: init storage: sqlite
 
@@ -33,17 +28,23 @@ func main() {
 }
 
 func setupLogger(env string) *slog.Logger {
-	var log *slog.Logger
+	/*	для вывода в файл
+		file, err := os.Create("log.txt")
+		if err != nil {
+			log.Fatal("Can`t create log file")
+		}
+	*/
+	var logger *slog.Logger
 
 	switch env {
 	case envLocal:
-		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	case envDev:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	case envProd:
 		//минимальный уровень выводимых ошибок ошибки до этой константы игнорируются
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
-	return log
+	return logger
 }
