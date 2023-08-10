@@ -2,9 +2,9 @@ package main
 
 import (
 	"golang.org/x/exp/slog"
-	"log"
 	"os"
 	"url-shortender/internal/config"
+	"url-shortender/internal/lib/sl"
 	"url-shortender/internal/storage/sqlite"
 )
 
@@ -20,12 +20,24 @@ func main() {
 	logger := setupLogger(cfg.Env)
 	logger.Info("starting url-shortener", slog.String("env", cfg.Env))
 	logger.Debug("debug messages are enabled")
-	//вот тут я бы использовал mysql
+	//@todo сделать подключение к другой СУБД
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
-		//slog как я понял пока не умеет обрабатывать в таком режиме, нужно писать отдельнуюфункцию
-		log.Fatalf("failed to init storage %s", err.Error())
+		logger.Error("failed to init storage", sl.Err(err))
+		os.Exit(1)
 	}
+
+	// @todo доделать
+	_, err = storage.CreateUrl("yandex.ru", "ya")
+	if err != nil {
+		logger.Error("failed to create link", sl.Err(err))
+	}
+
+	_, err = storage.CreateUrl("yandex.ru", "ya")
+	if err != nil {
+		logger.Error("failed to create link", sl.Err(err))
+	}
+
 	_ = storage
 	// TODO: init router: chi, "chi/render"
 

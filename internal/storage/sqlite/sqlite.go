@@ -22,7 +22,8 @@ func New(storagePath string) (*Storage, error) {
 		//С глаголом аннотации %w возвращаемая ошибка анврапится в обычную ошибку
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	//изучить лучше
+	//stmt - statement. sql, который можно выполнить позже.
+	//Обычно в тут должен храниться запрос с параметрами, которые можно подставить позже и выполнить запрос
 	stmt, err := db.Prepare(
 		`CREATE TABLE IF NOT EXISTS url(
     			id INTEGER PRIMARY KEY, 
@@ -40,4 +41,25 @@ func New(storagePath string) (*Storage, error) {
 	}
 
 	return &Storage{db: db}, nil
+}
+
+// изучить подробнее
+func (s *Storage) CreateUrl(url string, alias string) (int64, error) {
+	const op = "storage.sqlite.New"
+	stmt, err := s.db.Prepare(`INSERT INTO url (url, alias)VALUES (?, ?)`)
+	if err != nil {
+		return 0, fmt.Errorf("%s:%w", op, err)
+	}
+	res, err := stmt.Exec(url, alias)
+	if err != nil {
+		//здесь должен быть еще обработчик ошибок. Доделать
+		return 0, fmt.Errorf("%s:%w", op, err)
+	}
+
+	lastInsertId, err := res.LastInsertId()
+
+	if err != nil {
+		return 0, fmt.Errorf("%s:%w", op, err)
+	}
+	return lastInsertId, nil
 }
