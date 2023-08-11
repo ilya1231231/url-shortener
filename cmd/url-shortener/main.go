@@ -26,18 +26,9 @@ func main() {
 		logger.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
-
-	// @todo доделать
-	_, err = storage.CreateUrl("yandex.ru", "ya")
-	if err != nil {
-		logger.Error("failed to create link", sl.Err(err))
-	}
-
-	_, err = storage.CreateUrl("yandex.ru", "ya")
-	if err != nil {
-		logger.Error("failed to create link", sl.Err(err))
-	}
-
+	g, err := storage.GetUrl("ya")
+	c := *g
+	_ = c
 	_ = storage
 	// TODO: init router: chi, "chi/render"
 
