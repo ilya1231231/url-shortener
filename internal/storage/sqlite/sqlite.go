@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3"
 	"url-shortender/internal/storage"
 )
 
@@ -84,21 +83,42 @@ type Url struct {
 	Url   string
 }
 
+var UrlData Url
+
 func (s *Storage) GetUrl(alias string) (*Url, error) {
-	var UrlData Url
 	const fn = "storage.sqlite.GetUrl"
 	handle := func(fn string, err error) (*Url, error) {
 		return nil, fmt.Errorf("%s:%w", fn, err)
 	}
-
 	stmt, err := s.db.Prepare(`SELECT * FROM url WHERE alias = ?`)
 	if err != nil {
 		return handle(fn, err)
 	}
 
 	err = stmt.QueryRow(alias).Scan(&UrlData.ID, &UrlData.Alias, &UrlData.Url)
+	if errors.Is(err, sql.ErrNoRows) {
+		return handle(fn, storage.ErrURLNotFound)
+	}
 	if err != nil {
 		return handle(fn, err)
 	}
+
 	return &UrlData, nil
+}
+
+func (s *Storage) DeleteUrl(alias string) error {
+	const fn = "storage.sqlite.DeleteUrl"
+	handle := func(fn string, err error) error {
+		return fmt.Errorf("%s:%w", fn, err)
+	}
+
+	stmt, err := s.db.Prepare(`DELETE FROM url WHERE alias = ?`)
+	if err != nil {
+		return handle(fn, err)
+	}
+	_, err = stmt.Exec(&alias)
+	if err != nil {
+		return handle(fn, err)
+	}
+	return nil
 }

@@ -26,12 +26,13 @@ func main() {
 		logger.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
-	g, err := storage.GetUrl("ya")
-	c := *g
-	_ = c
-	_ = storage
-	// TODO: init router: chi, "chi/render"
-
+	err = storage.DeleteUrl("www")
+	if err != nil {
+		logger.Error("failed to delete url", sl.Err(err))
+		os.Exit(1)
+	}
+	//router := chi.NewRouter()
+	//middleware
 	// TODO: run server
 }
 
