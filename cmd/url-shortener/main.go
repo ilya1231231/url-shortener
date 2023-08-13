@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"golang.org/x/exp/slog"
 	"os"
 	"url-shortender/internal/config"
@@ -31,8 +33,13 @@ func main() {
 		logger.Error("failed to delete url", sl.Err(err))
 		os.Exit(1)
 	}
-	//router := chi.NewRouter()
-	//middleware
+	router := chi.NewRouter()
+	//у chi есть мидлвары из коробки
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	//нужен для того, чтоы при панике в хендлере не падало все приложение
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 	// TODO: run server
 }
 
