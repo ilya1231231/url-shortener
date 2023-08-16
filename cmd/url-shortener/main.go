@@ -4,8 +4,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"golang.org/x/exp/slog"
+	"log"
+	"net/http"
 	"os"
 	"url-shortender/internal/config"
+	"url-shortender/internal/http-server/handlers/url/save"
 	"url-shortender/internal/lib/sl"
 	"url-shortender/internal/storage/sqlite"
 )
@@ -28,11 +31,6 @@ func main() {
 		logger.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
-	err = storage.DeleteUrl("www")
-	if err != nil {
-		logger.Error("failed to delete url", sl.Err(err))
-		os.Exit(1)
-	}
 	router := chi.NewRouter()
 	//у chi есть мидлвары из коробки
 	router.Use(middleware.RequestID)
@@ -40,7 +38,14 @@ func main() {
 	//нужен для того, чтоы при панике в хендлере не падало все приложение
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
-	// TODO: run server
+	router.Handle("/url", save.New(logger, storage))
+	server := &http.Server{
+		Addr:        cfg.Address,
+		IdleTimeout: cfg.IdleTimeout,
+		ReadTimeout: cfg.Timout,
+		Handler:     router,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 func setupLogger(env string) *slog.Logger {
