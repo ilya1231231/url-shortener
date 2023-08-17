@@ -10,6 +10,7 @@ import (
 	"net/http"
 	res "url-shortender/internal/http-server/api/response"
 	"url-shortender/internal/lib/sl"
+	"url-shortender/internal/lib/validation"
 	"url-shortender/internal/storage"
 )
 
@@ -38,13 +39,10 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 		req := new(Request)
-		// @todo изучить детальнее chi/render
 		err := render.DecodeJSON(r.Body, req)
 		if err != nil {
 			reqLog.Error("failed to decode request", sl.Err(err))
-			//@todo изучить render подробнее
 			render.JSON(w, r, res.Error("failed to decode request"))
-			//верхняя функция не прерывает работу хендлера, поэтому прериваем его самостоятельно выходом из функции
 			return
 		}
 
@@ -53,8 +51,9 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		if err := validator.New().Struct(req); err != nil {
 			//@todo понять как работают ошибки и узнать в каком виде все возвращается
 			validateErrs := err.(validator.ValidationErrors)
+			errMsg := validation.ChangeErrMsg(validateErrs)
 			//@todo сделать user friendly сообщения об ошибке валидации и протестировать. Пока захардкодил
-			reqLog.Info("array of errors", slog.Any("errors", validateErrs))
+			reqLog.Info("array of errors", slog.Any("errors", errMsg))
 			render.JSON(w, r, res.Error("Validation Error"))
 			return
 		}
