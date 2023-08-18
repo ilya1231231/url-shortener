@@ -6,9 +6,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/exp/slog"
-	"math/rand"
 	"net/http"
 	res "url-shortender/internal/http-server/api/response"
+	"url-shortender/internal/lib/random"
 	"url-shortender/internal/lib/sl"
 	"url-shortender/internal/lib/validation"
 	"url-shortender/internal/storage"
@@ -52,7 +52,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			//@todo понять как работают ошибки и узнать в каком виде все возвращается
 			validateErrs := err.(validator.ValidationErrors)
 			errMsg := validation.ChangeErrMsg(validateErrs)
-			//@todo сделать user friendly сообщения об ошибке валидации и протестировать. Пока захардкодил
+			//@todo прокинуть название инпута
 			reqLog.Info("array of errors", slog.Any("errors", errMsg))
 			render.JSON(w, r, res.Error("Validation Error"))
 			return
@@ -60,8 +60,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		alias := req.Alias
 		if alias == "" {
-			//@todo сделать генератор рандомной строки куда мы передаем кол-во символов строки. Пакет random.
-			alias = string(rune(rand.Int()))
+			alias = random.MakeRandStr(8)
 		}
 
 		id, err := urlSaver.CreateUrl(req.Url, alias)
