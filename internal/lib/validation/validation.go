@@ -15,7 +15,7 @@ func ChangeErrMsg(errs validator.ValidationErrors) string {
 	for _, e := range errs {
 		ruMsg := ruMsgMap[e.Tag()]
 		//функция Sprintf. Возвращается отформатированную строку
-		sb.WriteString(fmt.Sprintf("Ошибка в поле %s.%s", e.Field(), ruMsg))
+		sb.WriteString(fmt.Sprintf("Ошибка в поле %s. %s", e.Field(), ruMsg))
 	}
 	return sb.String()
 }

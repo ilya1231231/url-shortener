@@ -53,8 +53,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			validateErrs := err.(validator.ValidationErrors)
 			errMsg := validation.ChangeErrMsg(validateErrs)
 			//@todo прокинуть название инпута
-			reqLog.Info("array of errors", slog.Any("errors", errMsg))
-			render.JSON(w, r, res.Error("Validation Error"))
+			render.JSON(w, r, res.Error(errMsg))
 			return
 		}
 
